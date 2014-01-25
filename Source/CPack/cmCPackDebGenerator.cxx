@@ -399,6 +399,18 @@ int cmCPackDebGenerator::createDeb()
     out << std::endl;
     }
 
+  std::string shlibsfilename;
+  shlibsfilename = this->GetOption("WDIR");
+  shlibsfilename += "/shlibs";
+
+  const char* debian_pkg_shlibs = this->GetOption("CPACK_DEBIAN_PACKAGE_SHLIBS");
+  if (debian_pkg_shlibs)
+    { // the scope is needed for cmGeneratedFileStream
+    cmGeneratedFileStream out(shlibsfilename.c_str());
+    out << debian_pkg_shlibs;
+    out << std::endl;
+    }
+
   std::string cmd;
   if (NULL != this->GetOption("CPACK_DEBIAN_FAKEROOT_EXECUTABLE")) {
       cmd += this->GetOption("CPACK_DEBIAN_FAKEROOT_EXECUTABLE");
@@ -496,6 +508,8 @@ int cmCPackDebGenerator::createDeb()
     cmd += " \"";
     cmd += cmakeExecutable;
     cmd += "\" -E tar cfz control.tar.gz ./control ./md5sums";
+    if (debian_pkg_shlibs)
+      cmd += " ./shlibs";
     const char* controlExtra =
       this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA");
   if( controlExtra )
