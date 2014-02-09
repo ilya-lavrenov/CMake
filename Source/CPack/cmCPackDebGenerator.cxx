@@ -553,6 +553,8 @@ int cmCPackDebGenerator::createDeb()
     cmd += "\" -E tar cfz control.tar.gz ./control ./md5sums";
     if (debian_pkg_shlibs)
       cmd += " ./shlibs";
+    if (debain_pkg_copyright_message && debian_pkg_license_type)
+      cmd += " ./copyright";
     const char* controlExtra =
       this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA");
   if( controlExtra )
