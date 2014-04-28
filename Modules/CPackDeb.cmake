@@ -289,8 +289,6 @@ if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS)
       set(CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS "${CPACK_DEBIAN_PACKAGE_SHLIBDEPS_DEPENDS}")
     endif()
 
-    message("CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS ${CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS}")
-
     if (CPACK_DEB_BINARY_FILES)
       # Remove blank control file
       # Might not be safe if package actual contain file or directory named debian
