@@ -306,7 +306,7 @@ int cmCPackDebGenerator::createDeb()
   const char* debian_pkg_version =
                                this->GetOption("CPACK_DEBIAN_PACKAGE_VERSION");
   const char* debian_pkg_section =
-                               this->GetOption("CPACK_DEBIAN_PACKAGE_SECTION");
+                               this->GetOption("CPACK_DEBIAN_PACKAGE_SECTION_FINAL");
   const char* debian_pkg_priority =
                               this->GetOption("CPACK_DEBIAN_PACKAGE_PRIORITY");
   const char* debian_pkg_arch =
@@ -420,6 +420,7 @@ int cmCPackDebGenerator::createDeb()
     std::string coyrightfilename;
     coyrightfilename = this->GetOption("WDIR");
     coyrightfilename += "/copyright";
+    {
     cmGeneratedFileStream out(coyrightfilename.c_str());
     out << "Format: http://dep.debian.net/deps/dep5\n";
     out << "Files: *\n";
@@ -440,7 +441,7 @@ int cmCPackDebGenerator::createDeb()
             }
           else
             {
-            out << "  " << line << "\n";   
+            out << "  " << line << "\n";
             }
           }
           license.close();
@@ -452,6 +453,7 @@ int cmCPackDebGenerator::createDeb()
         }
       }
     out << std::endl;
+    }
     }
 
   std::string cmd;
