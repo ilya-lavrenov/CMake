@@ -399,6 +399,8 @@ int cmCPackDebGenerator::createDeb()
     out << std::endl;
     }
 
+  cmSystemTools::SetPermissions(ctlfilename.c_str(), 0644);
+
   std::string shlibsfilename;
   shlibsfilename = this->GetOption("WDIR");
   shlibsfilename += "/shlibs";
@@ -411,17 +413,19 @@ int cmCPackDebGenerator::createDeb()
     out << std::endl;
     }
 
+  cmSystemTools::SetPermissions(shlibsfilename.c_str(), 0644);
+
   const char* debain_pkg_copyright_message = this->GetOption("CPACK_DEBIAN_PACKAGE_COPYRIGHT");
   const char* debian_pkg_license_type = this->GetOption("CPACK_DEBIAN_PACKAGE_LICENSE");
   const char* debian_pkg_license_file = this->GetOption("CPACK_RESOURCE_FILE_LICENSE");
 
   if (debain_pkg_copyright_message && debian_pkg_license_type)
     {
-    std::string coyrightfilename;
-    coyrightfilename = this->GetOption("WDIR");
-    coyrightfilename += "/copyright";
+    std::string copyrightfilename;
+    copyrightfilename = this->GetOption("WDIR");
+    copyrightfilename += "/copyright";
     {
-    cmGeneratedFileStream out(coyrightfilename.c_str());
+    cmGeneratedFileStream out(copyrightfilename.c_str());
     out << "Format: http://dep.debian.net/deps/dep5\n";
     out << "Files: *\n";
     out << "Copyright: " << debain_pkg_copyright_message << "\n";
@@ -454,6 +458,7 @@ int cmCPackDebGenerator::createDeb()
       }
     out << std::endl;
     }
+    cmSystemTools::SetPermissions(copyrightfilename.c_str(), 0644);
     }
 
   std::string cmd;
@@ -544,6 +549,8 @@ int cmCPackDebGenerator::createDeb()
     // each line contains a eol.
     // Do not end the md5sum file with yet another (invalid)
     }
+
+    cmSystemTools::SetPermissions(md5filename.c_str(), 0644);
 
     cmd = "";
     if (NULL != this->GetOption("CPACK_DEBIAN_FAKEROOT_EXECUTABLE"))
