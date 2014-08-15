@@ -19,6 +19,10 @@
 #include <cmsys/SystemTools.hxx>
 #include <cmsys/Glob.hxx>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <limits.h> // USHRT_MAX
 
 // NOTE:
@@ -530,6 +534,12 @@ int cmCPackDebGenerator::createDeb()
       for ( fileIt = packageFiles.begin();
             fileIt != packageFiles.end(); ++ fileIt )
       {
+      struct stat fileInfo;
+      int status = lstat(fileIt->c_str(), &fileInfo);
+      // filter out symbolic links and so on
+      if ( (status != 0) || !S_ISREG(fileInfo.st_mode) )
+          continue;
+
       cmd = "\"";
       cmd += cmakeExecutable;
       cmd += "\" -E md5sum \"";
