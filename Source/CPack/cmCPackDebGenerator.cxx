@@ -575,7 +575,7 @@ int cmCPackDebGenerator::createDeb()
     if (debain_pkg_copyright_message && debian_pkg_license_type)
       cmd += " ./copyright";
     const char* controlExtra =
-      this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA");
+      this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA_FINAL");
   if( controlExtra )
     {
     std::vector<std::string> controlExtraList;
