@@ -417,6 +417,26 @@ int cmCPackDebGenerator::createDeb()
     out << std::endl;
     }
 
+  std::string postinst;
+  postinst = this->GetOption("WDIR");
+  postinst += "/postinst";
+
+  if (debian_pkg_shlibs)
+  { // the scope is needed for cmGeneratedFileStream
+      cmGeneratedFileStream out(postinst.c_str());
+      out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"configure\" ]; then\n\tldconfig\nfi\n";
+  }
+
+  std::string postrm;
+  postrm = this->GetOption("WDIR");
+  postrm += "/postrm";
+
+  if (debian_pkg_shlibs)
+  { // the scope is needed for cmGeneratedFileStream
+      cmGeneratedFileStream out(postrm.c_str());
+      out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"remove\" ]; then\n\tldconfig\nfi\n";
+  }
+
   cmSystemTools::SetPermissions(shlibsfilename.c_str(), 0644);
 
   const char* debain_pkg_copyright_message = this->GetOption("CPACK_DEBIAN_PACKAGE_COPYRIGHT");
@@ -571,11 +591,11 @@ int cmCPackDebGenerator::createDeb()
     cmd += cmakeExecutable;
     cmd += "\" -E tar cfz control.tar.gz ./control ./md5sums";
     if (debian_pkg_shlibs)
-      cmd += " ./shlibs";
+      cmd += " ./shlibs ./postinst ./postrm";
     if (debain_pkg_copyright_message && debian_pkg_license_type)
       cmd += " ./copyright";
     const char* controlExtra =
-      this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA_FINAL");
+      this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA");
   if( controlExtra )
     {
     std::vector<std::string> controlExtraList;
@@ -598,6 +618,17 @@ int cmCPackDebGenerator::createDeb()
         }
       }
     }
+
+  // Set permissions for preinst, postinst, prerm and postrm scripts
+  std::string packageScripts[] = {"preinst", "postinst", "prerm", "postrm"};
+  std::string packageSriptsDir = this->GetOption("WDIR");
+  for (size_t i = 0; i < sizeof(packageScripts)/sizeof(packageScripts[0]); i++)
+    {
+    std::string full = packageSriptsDir + "/" + packageScripts[i];
+    if (cmSystemTools::FileExists(full.c_str()))
+        cmSystemTools::SetPermissions(full.c_str(), 0755);
+    }
+
   res = cmSystemTools::RunSingleCommand(cmd.c_str(), &output,
       &retval, this->GetOption("WDIR"), this->GeneratorVerbose, 0);
 
