@@ -443,48 +443,6 @@ int cmCPackDebGenerator::createDeb()
   const char* debian_pkg_license_type = this->GetOption("CPACK_DEBIAN_PACKAGE_LICENSE");
   const char* debian_pkg_license_file = this->GetOption("CPACK_RESOURCE_FILE_LICENSE");
 
-  if (debain_pkg_copyright_message && debian_pkg_license_type)
-    {
-    std::string copyrightfilename;
-    copyrightfilename = this->GetOption("WDIR");
-    copyrightfilename += "/copyright";
-    {
-    cmGeneratedFileStream out(copyrightfilename.c_str());
-    out << "Format: http://dep.debian.net/deps/dep5\n";
-    out << "Files: *\n";
-    out << "Copyright: " << debain_pkg_copyright_message << "\n";
-    out << "License: " << debian_pkg_license_type << "\n";
-    if (debian_pkg_license_file)
-      {
-      std::ifstream license(debian_pkg_license_file);
-      if (license.is_open())
-        {
-        std::string line;
-        while (license.good())
-          {
-          getline(license, line);
-          if (line.empty())
-            {
-            out << "  .\n";
-            }
-          else
-            {
-            out << "  " << line << "\n";
-            }
-          }
-          license.close();
-        }
-      else
-        {
-        cmCPackLogger(cmCPackLog::LOG_ERROR,
-                      "License file \"" << debian_pkg_license_file << "\" not found" << std::endl);
-        }
-      }
-    out << std::endl;
-    }
-    cmSystemTools::SetPermissions(copyrightfilename.c_str(), 0644);
-    }
-
   std::string cmd;
   if (NULL != this->GetOption("CPACK_DEBIAN_FAKEROOT_EXECUTABLE")) {
       cmd += this->GetOption("CPACK_DEBIAN_FAKEROOT_EXECUTABLE");
@@ -592,8 +550,6 @@ int cmCPackDebGenerator::createDeb()
     cmd += "\" -E tar cfz control.tar.gz ./control ./md5sums";
     if (debian_pkg_shlibs)
       cmd += " ./shlibs ./postinst ./postrm";
-    if (debain_pkg_copyright_message && debian_pkg_license_type)
-      cmd += " ./copyright";
     const char* controlExtra =
       this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA");
   if( controlExtra )
