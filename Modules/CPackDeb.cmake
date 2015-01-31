@@ -474,7 +474,7 @@ endif()
 
 # Generate shlibs file
 set(CPACK_DEB_SHARED_OBJECT_FILES "")
-foreach ( _FILE ${CPACK_DEB_INSTALL_FILES})
+foreach (_FILE ${CPACK_DEB_INSTALL_FILES})
   if ( ${_FILE} MATCHES "ELF.*shared object")
     string(REGEX MATCH "(^.*):" _FILE_NAME ${_FILE})
     list(APPEND CPACK_DEB_SHARED_OBJECT_FILES ${CMAKE_MATCH_1})
@@ -495,6 +495,15 @@ endforeach()
 if (CPACK_DEBIAN_PACKAGE_SHLIBS_LIST)
   string(REPLACE ";" "\n" CPACK_DEBIAN_PACKAGE_SHLIBS "${CPACK_DEBIAN_PACKAGE_SHLIBS_LIST}")
 endif()
+set(CPACK_ADD_LDCONFIG_CALL 0)
+foreach(_FILE ${CPACK_DEB_SHARED_OBJECT_FILES})
+  get_filename_component(_DIR ${_FILE} DIRECTORY)
+  # all files in CPACK_DEB_SHARED_OBJECT_FILES have dot at the beginning
+  if(_DIR STREQUAL "./lib" OR _DIR STREQUAL "./usr/lib")
+    set(CPACK_ADD_LDCONFIG_CALL 1)
+  endif()
+endforeach()
+
 
 set(WDIR "${CPACK_TOPLEVEL_DIRECTORY}/${CPACK_PACKAGE_FILE_NAME}${CPACK_DEB_PACKAGE_COMPONENT_PART_PATH}")
 

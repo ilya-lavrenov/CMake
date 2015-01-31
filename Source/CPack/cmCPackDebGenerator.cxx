@@ -417,25 +417,26 @@ int cmCPackDebGenerator::createDeb()
     out << std::endl;
     }
 
-  std::string postinst;
-  postinst = this->GetOption("WDIR");
-  postinst += "/postinst";
+  if (this->IsOn("CPACK_ADD_LDCONFIG_CALL"))
+    {
+    std::string postinst;
+    postinst = this->GetOption("WDIR");
+    postinst += "/postinst";
 
-  if (debian_pkg_shlibs)
-  { // the scope is needed for cmGeneratedFileStream
-      cmGeneratedFileStream out(postinst.c_str());
-      out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"configure\" ]; then\n\tldconfig\nfi\n";
-  }
+    { // the scope is needed for cmGeneratedFileStream
+    cmGeneratedFileStream out(postinst.c_str());
+    out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"configure\" ]; then\n\tldconfig\nfi\n";
+    }
 
-  std::string postrm;
-  postrm = this->GetOption("WDIR");
-  postrm += "/postrm";
+    std::string postrm;
+    postrm = this->GetOption("WDIR");
+    postrm += "/postrm";
 
-  if (debian_pkg_shlibs)
-  { // the scope is needed for cmGeneratedFileStream
-      cmGeneratedFileStream out(postrm.c_str());
-      out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"remove\" ]; then\n\tldconfig\nfi\n";
-  }
+    { // the scope is needed for cmGeneratedFileStream
+    cmGeneratedFileStream out(postrm.c_str());
+    out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"remove\" ]; then\n\tldconfig\nfi\n";
+    }
+    }
 
   cmSystemTools::SetPermissions(shlibsfilename.c_str(), 0644);
 
@@ -548,7 +549,7 @@ int cmCPackDebGenerator::createDeb()
     cmd += " \"";
     cmd += cmakeExecutable;
     cmd += "\" -E tar cfz control.tar.gz ./control ./md5sums";
-    if (debian_pkg_shlibs)
+    if( this->IsOn("CPACK_ADD_LDCONFIG_CALL") )
       cmd += " ./shlibs ./postinst ./postrm";
     const char* controlExtra =
       this->GetOption("CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA");
