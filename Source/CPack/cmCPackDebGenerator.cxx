@@ -333,11 +333,11 @@ int cmCPackDebGenerator::createDeb()
   const char* debian_pkg_breaks =
                     this->GetOption("CPACK_DEBIAN_PACKAGE_BREAKS");
   const char* debian_pkg_conflicts =
-                    this->GetOption("CPACK_DEBIAN_PACKAGE_CONFLICTS");
+                    this->GetOption("CPACK_DEBIAN_PACKAGE_CONFLICTS_FINAL");
   const char* debian_pkg_provides =
-                    this->GetOption("CPACK_DEBIAN_PACKAGE_PROVIDES");
+                    this->GetOption("CPACK_DEBIAN_PACKAGE_PROVIDES_FINAL");
   const char* debian_pkg_replaces =
-                    this->GetOption("CPACK_DEBIAN_PACKAGE_REPLACES");
+                    this->GetOption("CPACK_DEBIAN_PACKAGE_REPLACES_FINAL");
 
     { // the scope is needed for cmGeneratedFileStream
     cmGeneratedFileStream out(ctlfilename.c_str());
