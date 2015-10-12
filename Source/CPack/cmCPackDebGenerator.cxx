@@ -321,9 +321,9 @@ int cmCPackDebGenerator::createDeb()
   // optional entries
   const char* debian_pkg_dep = this->GetOption("CPACK_DEBIAN_PACKAGE_DEPENDS");
   const char* debian_pkg_rec =
-                            this->GetOption("CPACK_DEBIAN_PACKAGE_RECOMMENDS");
+                            this->GetOption("CPACK_DEBIAN_PACKAGE_RECOMMENDS_FINAL");
   const char* debian_pkg_sug =
-                              this->GetOption("CPACK_DEBIAN_PACKAGE_SUGGESTS");
+                              this->GetOption("CPACK_DEBIAN_PACKAGE_SUGGESTS_FINAL");
   const char* debian_pkg_url =
                               this->GetOption("CPACK_DEBIAN_PACKAGE_HOMEPAGE");
   const char* debian_pkg_predep =
