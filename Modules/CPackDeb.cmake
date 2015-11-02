@@ -392,27 +392,31 @@ if(CPACK_DEB_PACKAGE_COMPONENT)
   set(_DEB_DEPENDS ${CPACK_DEB_${COMPONENT_UPCASE}_PACKAGE_DEPENDS})
   if(_DEB_DEPENDS)
 
-    find_program(APTIDUTE_EXECUTABLE NAMES aptitude)
+    find_program(APT_CACHE_EXECUTABLE NAMES apt-cache)
 
-    if(APTIDUTE_EXECUTABLE)
+    if(APT_CACHE_EXECUTABLE)
 
       # preprocess CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS packages to eliminate virtual ones
       string(REPLACE "," ";" deps "${CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS}")
       foreach(dependency ${deps})
         string(REGEX REPLACE "\\(.+\\)" "" package_name "${dependency}")
-        string(REPLACE " " "" package_name "${package_name}")
-        if(package_name)
-          execute_process(COMMAND "${APTIDUTE_EXECUTABLE}" search "~v \^${package_name}\$"
-              RESULT_VARIABLE result
-              OUTPUT_VARIABLE output)
+        string(STRIP "${package_name}" package_name)
 
-          if(result EQUAL 0)
-            if(output) # it's a virtual package
+        if(package_name)
+          execute_process(COMMAND "${APT_CACHE_EXECUTABLE}" show ${package_name}
+              RESULT_VARIABLE result
+              OUTPUT_VARIABLE output
+              ERROR_VARIABLE output
+              OUTPUT_STRIP_TRAILING_WHITESPACE
+              ERROR_STRIP_TRAILING_WHITESPACE)
+
+          if(${result} EQUAL 0)
+            if(NOT output) # it's a virtual package
               message("CPackDeb: the \"${package_name}\" package is a virtual one. Skipping.")
               list(APPEND deps_to_remove "${dependency}")
             endif()
-          else(CPACK_DEBIAN_PACKAGE_DEBUG)
-            message("CPackDeb:Debug: failed to detect the \"${package_name}\" package type")
+          elseif(CPACK_DEBIAN_PACKAGE_DEBUG)
+            message("CPackDeb:Debug: failed to retrieve the \"${package_name}\" package info.")
           endif()
 
           unset(output)
