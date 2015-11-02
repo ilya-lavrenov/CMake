@@ -390,6 +390,44 @@ if(CPACK_DEB_PACKAGE_COMPONENT)
 
   set(_DEB_DEPENDS ${CPACK_DEB_${COMPONENT_UPCASE}_PACKAGE_DEPENDS})
   if(_DEB_DEPENDS)
+
+    find_program(APTIDUTE_EXECUTABLE NAMES aptitude)
+
+    if(APTIDUTE_EXECUTABLE)
+
+      # preprocess CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS packages to eliminate virtual ones
+      string(REPLACE "," ";" deps "${CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS}")
+      foreach(dependency ${deps})
+        string(REGEX REPLACE "\\(.+\\)" "" package_name "${dependency}")
+        string(REPLACE " " "" package_name "${package_name}")
+        if(package_name)
+          execute_process(COMMAND "${APTIDUTE_EXECUTABLE}" search "~v \^${package_name}\$"
+              RESULT_VARIABLE result
+              OUTPUT_VARIABLE output)
+
+          if(result EQUAL 0)
+            if(output) # it's a virtual package
+              message("CPackDeb: the \"${package_name}\" package is a virtual one. Skipping.")
+              list(APPEND deps_to_remove "${dependency}")
+            endif()
+          else(CPACK_DEBIAN_PACKAGE_DEBUG)
+            message("CPackDeb:Debug: failed to detect the \"${package_name}\" package type")
+          endif()
+
+          unset(output)
+          unset(result)
+        endif()
+      endforeach()
+
+      if(deps_to_remove)
+        list(REMOVE_ITEM deps ${deps_to_remove})
+        string(REPLACE ";" "," CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS "${deps}")
+      endif()
+
+      unset(deps_to_remove)
+      unset(deps)
+    endif()
+
     if (CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS)
       set(CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS "${CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS}, ${_DEB_DEPENDS}")
     else()
