@@ -238,15 +238,16 @@ if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS)
 
   # Check version of the dpkg-shlibdeps tool using CPackRPM method
   if(SHLIBDEPS_EXECUTABLE)
-    execute_process(COMMAND ${SHLIBDEPS_EXECUTABLE} --version
-      OUTPUT_VARIABLE _TMP_VERSION
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH "dpkg-shlibdeps version ([0-9]+\\.[0-9]+\\.[0-9]+)"
-      SHLIBDEPS_EXECUTABLE_VERSION
-      ${_TMP_VERSION})
-    set(SHLIBDEPS_EXECUTABLE_VERSION "${CMAKE_MATCH_1}")
     if(CPACK_DEBIAN_PACKAGE_DEBUG)
+      execute_process(COMMAND ${SHLIBDEPS_EXECUTABLE} --version
+        OUTPUT_VARIABLE _TMP_VERSION
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+      string(REGEX MATCH "dpkg-shlibdeps version ([0-9]+\\.[0-9]+\\.[0-9]+)"
+        SHLIBDEPS_EXECUTABLE_VERSION
+        ${_TMP_VERSION})
+      set(SHLIBDEPS_EXECUTABLE_VERSION "${CMAKE_MATCH_1}")
+
       message( "CPackDeb Debug: dpkg-shlibdeps version is <${SHLIBDEPS_EXECUTABLE_VERSION}>")
     endif()
 
