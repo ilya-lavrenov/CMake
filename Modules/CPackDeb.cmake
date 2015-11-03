@@ -403,7 +403,10 @@ if(CPACK_DEB_PACKAGE_COMPONENT)
 
   set(_DEB_DEPENDS ${CPACK_DEB_${COMPONENT_UPCASE}_PACKAGE_DEPENDS})
   if(_DEB_DEPENDS)
+<<<<<<< HEAD
 
+=======
+>>>>>>> added variable to control skipping of virtual packages
     if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_SKIP_VIRTUAL_PACKAGES)
       find_program(APT_CACHE_EXECUTABLE NAMES apt-cache)
 
