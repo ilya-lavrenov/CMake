@@ -405,6 +405,8 @@ int cmCPackDebGenerator::createDeb()
 
   cmSystemTools::SetPermissions(ctlfilename.c_str(), 0644);
 
+  // shlibs file
+
   std::string shlibsfilename;
   shlibsfilename = this->GetOption("WDIR");
   shlibsfilename += "/shlibs";
@@ -417,8 +419,31 @@ int cmCPackDebGenerator::createDeb()
     out << std::endl;
     }
 
+  // lintian overrides
+
+  std::string lintianOverridesFilename;
+  lintianOverridesFilename = this->GetOption("CPACK_TEMPORARY_DIRECTORY");
+  lintianOverridesFilename += "/usr/share/lintian/overrides/";
+  lintianOverridesFilename += debian_pkg_name;
+
+  const char* lintian_overrides = this->GetOption("CPACK_DEBIAN_PACKAGE_LINTIAN_OVERRIDES");
+  if (lintian_overrides)
+    {
+      { // the scope is needed to cmGeneratedFileStream
+      cmGeneratedFileStream out(lintianOverridesFilename.c_str());
+      out << lintian_overrides;
+      out << std::endl;
+      }
+
+      packageFiles.push_back(lintianOverridesFilename);
+      cmSystemTools::SetPermissions(lintianOverridesFilename.c_str(), 0644);
+    }
+
   if (this->IsOn("CPACK_ADD_LDCONFIG_CALL"))
     {
+
+    // default postint
+
     std::string postinst;
     postinst = this->GetOption("WDIR");
     postinst += "/postinst";
@@ -427,6 +452,8 @@ int cmCPackDebGenerator::createDeb()
     cmGeneratedFileStream out(postinst.c_str());
     out << "#!/bin/sh\n\nset -e\n\nif [ \"$1\" = \"configure\" ]; then\n\tldconfig\nfi\n";
     }
+
+    // default postrm
 
     std::string postrm;
     postrm = this->GetOption("WDIR");
