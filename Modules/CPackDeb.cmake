@@ -205,7 +205,7 @@ unset(CPACK_DEB_BINARY_FILES)
 unset(CPACK_DEB_SHARED_OBJECT_FILES)
 unset(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_DEPENDS)
 
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "")
+unset(CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
 
 if(CMAKE_BINARY_DIR)
   message(FATAL_ERROR "CPackDeb.cmake may only be used by CPack internally.")
@@ -403,10 +403,6 @@ if(CPACK_DEB_PACKAGE_COMPONENT)
 
   set(_DEB_DEPENDS ${CPACK_DEB_${COMPONENT_UPCASE}_PACKAGE_DEPENDS})
   if(_DEB_DEPENDS)
-<<<<<<< HEAD
-
-=======
->>>>>>> added variable to control skipping of virtual packages
     if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_SKIP_VIRTUAL_PACKAGES)
       find_program(APT_CACHE_EXECUTABLE NAMES apt-cache)
 
