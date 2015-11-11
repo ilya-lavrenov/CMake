@@ -111,6 +111,9 @@ int cmCPackDebGenerator::PackageOnePack(std::string initialTopLevel,
     retval = 0;
     }
   // add the generated package to package file names list
+  packageFileName = this->GetOption("CPACK_TOPLEVEL_DIRECTORY");
+    packageFileName += "/";
+    packageFileName += this->GetOption("CPACK_OUTPUT_FILE_NAME");
   packageFileNames.push_back(packageFileName);
   return retval;
 }
@@ -238,6 +241,9 @@ int cmCPackDebGenerator::PackageComponentsAllInOne()
     retval = 0;
     }
   // add the generated package to package file names list
+  packageFileName = this->GetOption("CPACK_TOPLEVEL_DIRECTORY");
+    packageFileName += "/";
+    packageFileName += this->GetOption("CPACK_OUTPUT_FILE_NAME");
   packageFileNames.push_back(packageFileName);
   return retval;
 }
