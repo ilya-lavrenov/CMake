@@ -205,8 +205,6 @@ unset(CPACK_DEB_BINARY_FILES)
 unset(CPACK_DEB_SHARED_OBJECT_FILES)
 unset(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_DEPENDS)
 
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "")
-
 if(CMAKE_BINARY_DIR)
   message(FATAL_ERROR "CPackDeb.cmake may only be used by CPack internally.")
 endif()
@@ -363,22 +361,20 @@ if(NOT CPACK_DEBIAN_PACKAGE_VERSION)
 endif()
 
 # Architecture: (mandatory)
-if(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
-  if(CPACK_DEB_PACKAGE_COMPONENT AND CPACK_DEBIAN_COMPONENT_${COMPONENT_UPCASE}_ARCHITECTURE)
-    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${CPACK_DEBIAN_COMPONENT_${COMPONENT_UPCASE}_ARCHITECTURE})
-  else()
-    # There is no such thing as i686 architecture on debian, you should use i386 instead
-    # $ dpkg --print-architecture
-    find_program(DPKG_CMD dpkg)
-    if(NOT DPKG_CMD)
-      message(STATUS "CPackDeb: Can not find dpkg in your path, default to i386.")
-      set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE i386)
-    endif()
-    execute_process(COMMAND "${DPKG_CMD}" --print-architecture
-      OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      )
+if(CPACK_DEB_PACKAGE_COMPONENT AND CPACK_DEBIAN_COMPONENT_${COMPONENT_UPCASE}_ARCHITECTURE)
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${CPACK_DEBIAN_COMPONENT_${COMPONENT_UPCASE}_ARCHITECTURE})
+elseif(NOT CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
+  # There is no such thing as i686 architecture on debian, you should use i386 instead
+  # $ dpkg --print-architecture
+  find_program(DPKG_CMD dpkg)
+  if(NOT DPKG_CMD)
+    message(STATUS "CPackDeb: Can not find dpkg in your path, default to i386.")
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE i386)
   endif()
+  execute_process(COMMAND "${DPKG_CMD}" --print-architecture
+    OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 endif()
 
 if(CPACK_DEB_PACKAGE_COMPONENT)
