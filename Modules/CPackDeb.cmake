@@ -195,15 +195,15 @@ unset(CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS)
 unset(CPACK_DEBIAN_PACKAGE_SHLIBS_LIST)
 unset(CPACK_DEBIAN_PACKAGE_SHLIBS)
 
-set(CPACK_DEBIAN_PACKAGE_CONFLICTS_FINAL "")
-set(CPACK_DEBIAN_PACKAGE_PROVIDES_FINAL "")
-set(CPACK_DEBIAN_PACKAGE_REPLACES_FINAL "")
-set(CPACK_DEBIAN_PACKAGE_SUGGESTS_FINAL "")
-set(CPACK_DEBIAN_PACKAGE_RECOMMENDS_FINAL "")
+unset(CPACK_DEBIAN_PACKAGE_CONFLICTS_FINAL)
+unset(CPACK_DEBIAN_PACKAGE_PROVIDES_FINAL)
+unset(CPACK_DEBIAN_PACKAGE_REPLACES_FINAL)
+unset(CPACK_DEBIAN_PACKAGE_SUGGESTS_FINAL)
+unset(CPACK_DEBIAN_PACKAGE_RECOMMENDS_FINAL)
 
-set(CPACK_DEB_BINARY_FILES "")
-set(CPACK_DEB_INSTALL_FILES "")
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_DEPENDS "")
+unset(CPACK_DEB_BINARY_FILES)
+unset(CPACK_DEB_SHARED_OBJECT_FILES)
+unset(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_DEPENDS)
 
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "")
 
@@ -241,6 +241,30 @@ if(FAKEROOT_EXECUTABLE)
   set(CPACK_DEBIAN_FAKEROOT_EXECUTABLE ${FAKEROOT_EXECUTABLE})
 endif()
 
+# Generating binary list - Get type of all install files
+execute_process(COMMAND find -type f
+  COMMAND xargs file
+  WORKING_DIRECTORY "${CPACK_TEMPORARY_DIRECTORY}"
+  OUTPUT_VARIABLE CPACK_DEB_INSTALL_FILES)
+
+# Convert to CMake list
+if (CPACK_DEB_INSTALL_FILES)
+  string(REGEX REPLACE "\n" ";" CPACK_DEB_INSTALL_FILES ${CPACK_DEB_INSTALL_FILES})
+endif()
+
+# Only dynamically linked ELF files are included
+# Extract only file name infront of ":"
+foreach ( _FILE ${CPACK_DEB_INSTALL_FILES})
+  if ( ${_FILE} MATCHES "ELF.*dynamically linked")
+     string(REGEX MATCH "(^.*):" _FILE_NAME ${_FILE})
+     list(APPEND CPACK_DEB_BINARY_FILES ${CMAKE_MATCH_1})
+  endif()
+  if ( ${_FILE} MATCHES "ELF.*shared object")
+     string(REGEX MATCH "(^.*):" _FILE_NAME ${_FILE})
+     list(APPEND CPACK_DEB_SHARED_OBJECT_FILES ${CMAKE_MATCH_1})
+  endif()
+endforeach()
+
 if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS)
   # dpkg-shlibdeps is a Debian utility for generating dependency list
   find_program(SHLIBDEPS_EXECUTABLE dpkg-shlibdeps)
@@ -259,30 +283,6 @@ if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS)
 
       message( "CPackDeb Debug: dpkg-shlibdeps version is <${SHLIBDEPS_EXECUTABLE_VERSION}>")
     endif()
-
-    # Generating binary list - Get type of all install files
-    execute_process(COMMAND find -type f
-      COMMAND xargs file
-      WORKING_DIRECTORY "${CPACK_TEMPORARY_DIRECTORY}"
-      OUTPUT_VARIABLE CPACK_DEB_INSTALL_FILES)
-
-    # Convert to CMake list
-    if (CPACK_DEB_INSTALL_FILES)
-      string(REGEX REPLACE "\n" ";" CPACK_DEB_INSTALL_FILES ${CPACK_DEB_INSTALL_FILES})
-    endif()
-
-    # Only dynamically linked ELF files are included
-    # Extract only file name infront of ":"
-    foreach ( _FILE ${CPACK_DEB_INSTALL_FILES})
-      if ( ${_FILE} MATCHES "ELF.*dynamically linked")
-         string(REGEX MATCH "(^.*):" _FILE_NAME ${_FILE})
-         list(APPEND CPACK_DEB_BINARY_FILES ${CMAKE_MATCH_1})
-      endif()
-      if ( ${_FILE} MATCHES "ELF.*shared object")
-         string(REGEX MATCH "(^.*):" _FILE_NAME ${_FILE})
-         list(APPEND CPACK_DEB_SHARED_OBJECT_FILES ${CMAKE_MATCH_1})
-      endif()
-    endforeach()
 
     if(CPACK_DEB_BINARY_FILES)
       message( "CPackDeb: - Generating dependency list")
@@ -564,16 +564,6 @@ if(CPACK_DEB_PACKAGE_COMPONENT)
 endif()
 
 # Generate shlibs file
-set(CPACK_DEB_SHARED_OBJECT_FILES "")
-foreach (_FILE ${CPACK_DEB_INSTALL_FILES})
-  if ( ${_FILE} MATCHES "ELF.*shared object")
-    string(REGEX MATCH "(^.*):" _FILE_NAME ${_FILE})
-    list(APPEND CPACK_DEB_SHARED_OBJECT_FILES ${CMAKE_MATCH_1})
-  endif()
-endforeach()
-if(CPACK_DEB_SHARED_OBJECT_FILES)
-  list(REMOVE_DUPLICATES CPACK_DEB_SHARED_OBJECT_FILES)
-endif()
 foreach(_FILE ${CPACK_DEB_SHARED_OBJECT_FILES})
   get_filename_component(_LIBNAME ${_FILE} NAME_WE)
   # FIXME: fix the SOVERSION code instead of file extension parsing
@@ -586,6 +576,8 @@ endforeach()
 if (CPACK_DEBIAN_PACKAGE_SHLIBS_LIST)
   string(REPLACE ";" "\n" CPACK_DEBIAN_PACKAGE_SHLIBS "${CPACK_DEBIAN_PACKAGE_SHLIBS_LIST}")
 endif()
+
+# add ldconfig call in default postrm and postint
 set(CPACK_ADD_LDCONFIG_CALL 0)
 foreach(_FILE ${CPACK_DEB_SHARED_OBJECT_FILES})
   get_filename_component(_DIR ${_FILE} DIRECTORY)
