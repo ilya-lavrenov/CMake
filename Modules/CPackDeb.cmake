@@ -226,6 +226,7 @@ function(get_component_package_name var component)
   else()
     string(TOLOWER "${CPACK_PACKAGE_NAME}-${component}" package_name)
   endif()
+
   set("${var}" "${package_name}" PARENT_SCOPE)
 endfunction()
 
@@ -594,8 +595,16 @@ foreach(_FILE ${CPACK_DEB_SHARED_OBJECT_FILES})
   endif()
 endforeach()
 
-
 set(WDIR "${CPACK_TOPLEVEL_DIRECTORY}/${CPACK_PACKAGE_FILE_NAME}${CPACK_DEB_PACKAGE_COMPONENT_PART_PATH}")
+
+# Patch package file name to be in corrent form
+if(CPACK_DEB_PACKAGE_COMPONENT)
+  set(CPACK_OUTPUT_FILE_NAME "${CPACK_DEBIAN_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}.deb")
+  set(CPACK_TEMPORARY_PACKAGE_FILE_NAME "${CPACK_TOPLEVEL_DIRECTORY}/${CPACK_OUTPUT_FILE_NAME}")
+
+  get_filename_component(BINARY_DIR "${CPACK_OUTPUT_FILE_PATH}" DIRECTORY)
+  set(CPACK_OUTPUT_FILE_PATH "${BINARY_DIR}/${CPACK_OUTPUT_FILE_NAME}")
+endif()
 
 # Print out some debug information if we were asked for that
 if(CPACK_DEBIAN_PACKAGE_DEBUG)
