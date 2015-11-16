@@ -86,6 +86,12 @@
 #     See http://www.cmake.org/Wiki/CMake_RPATH_handling.
 ##end
 ##variable
+# CPACK_DEBIAN_PACKAGE_SHLIBDEPS_SKIP_VIRTUAL_PACKAGES
+#     Mandatory : NO
+#     Default   : OFF
+#     May be set to ON in order to skip virtual packages found by dpkg-shlibdeps.
+##end
+##variable
 # CPACK_DEBIAN_PACKAGE_DEBUG
 #     Mandatory : NO
 #     Default   : -
@@ -240,15 +246,16 @@ if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS)
 
   # Check version of the dpkg-shlibdeps tool using CPackRPM method
   if(SHLIBDEPS_EXECUTABLE)
-    execute_process(COMMAND ${SHLIBDEPS_EXECUTABLE} --version
-      OUTPUT_VARIABLE _TMP_VERSION
-      ERROR_QUIET
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH "dpkg-shlibdeps version ([0-9]+\\.[0-9]+\\.[0-9]+)"
-      SHLIBDEPS_EXECUTABLE_VERSION
-      ${_TMP_VERSION})
-    set(SHLIBDEPS_EXECUTABLE_VERSION "${CMAKE_MATCH_1}")
     if(CPACK_DEBIAN_PACKAGE_DEBUG)
+      execute_process(COMMAND ${SHLIBDEPS_EXECUTABLE} --version
+        OUTPUT_VARIABLE _TMP_VERSION
+        ERROR_QUIET
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+      string(REGEX MATCH "dpkg-shlibdeps version ([0-9]+\\.[0-9]+\\.[0-9]+)"
+        SHLIBDEPS_EXECUTABLE_VERSION
+        ${_TMP_VERSION})
+      set(SHLIBDEPS_EXECUTABLE_VERSION "${CMAKE_MATCH_1}")
+
       message( "CPackDeb Debug: dpkg-shlibdeps version is <${SHLIBDEPS_EXECUTABLE_VERSION}>")
     endif()
 
@@ -396,6 +403,50 @@ if(CPACK_DEB_PACKAGE_COMPONENT)
 
   set(_DEB_DEPENDS ${CPACK_DEB_${COMPONENT_UPCASE}_PACKAGE_DEPENDS})
   if(_DEB_DEPENDS)
+
+    if(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_SKIP_VIRTUAL_PACKAGES)
+      find_program(APT_CACHE_EXECUTABLE NAMES apt-cache)
+
+      if(APT_CACHE_EXECUTABLE)
+
+        # preprocess CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS packages to eliminate virtual ones
+        string(REPLACE "," ";" deps "${CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS}")
+        foreach(dependency ${deps})
+          string(REGEX REPLACE "\\(.+\\)" "" package_name "${dependency}")
+          string(STRIP "${package_name}" package_name)
+
+          if(package_name)
+            execute_process(COMMAND "${APT_CACHE_EXECUTABLE}" show ${package_name}
+                RESULT_VARIABLE result
+                OUTPUT_VARIABLE output
+                ERROR_VARIABLE output
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_STRIP_TRAILING_WHITESPACE)
+
+            if(${result} EQUAL 0)
+              if(NOT output) # it's a virtual package
+                message("CPackDeb: the \"${package_name}\" package is a virtual one. Skipping.")
+                list(APPEND deps_to_remove "${dependency}")
+              endif()
+            elseif(CPACK_DEBIAN_PACKAGE_DEBUG)
+              message("CPackDeb:Debug: failed to retrieve the \"${package_name}\" package info.")
+            endif()
+
+            unset(output)
+            unset(result)
+          endif()
+        endforeach()
+
+        if(deps_to_remove)
+          list(REMOVE_ITEM deps ${deps_to_remove})
+          string(REPLACE ";" "," CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS "${deps}")
+        endif()
+
+        unset(deps_to_remove)
+        unset(deps)
+      endif()
+    endif(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_SKIP_VIRTUAL_PACKAGES)
+
     if (CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS)
       set(CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS "${CPACK_DEBIAN_PACKAGE_AUTO_DEPENDS}, ${_DEB_DEPENDS}")
     else()
